@@ -1,52 +1,27 @@
-// Vercel Serverless Function - 豆包 API 代理
-// 文件路径：api/chat.js（Vercel 会自动识别为 Serverless Function）
-
-export default async function (req, res) {
-  // CORS 头
+export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // 处理预检请求
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  // 只允许 POST
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: '只支持 POST 请求' });
-  }
+  if (req.method === 'OPTIONS') { res.statusCode = 200; res.end(); return; }
+  if (req.method !== 'POST') { res.statusCode = 405; res.end(JSON.stringify({error:'只支持POST'})); return; }
 
   try {
     const { apiKey, apiUrl, model, messages } = req.body;
+    if (!apiKey || !apiUrl || !messages) { res.statusCode = 400; res.end(JSON.stringify({error:'缺少参数'})); return; }
 
-    if (!apiKey || !apiUrl || !messages) {
-      return res.status(400).json({ error: '缺少必要参数：apiKey、apiUrl 或 messages' });
-    }
-
-    // 转发到豆包 API
     const response = await fetch(apiUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: model || 'doubao-1.5-pro-32k',
-        messages: messages,
-      }),
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      body: JSON.stringify({ model: model || 'doubao-1.5-pro-32k', messages }),
     });
-
     const data = await response.json();
-
-    if (!response.ok) {
-      return res.status(response.status).json(data);
-    }
-
-    return res.status(200).json(data);
-
-  } catch (err) {
-    console.error('代理错误：', err);
-    return res.status(500).json({ error: '代理服务器错误', detail: err.message });
+    res.statusCode = response.ok ? 200 : response.status;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(data));
+  } catch(err) {
+    res.statusCode = 500;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({error:'代理错误',detail:err.message}));
   }
-};
+}
