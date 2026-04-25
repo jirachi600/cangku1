@@ -1,5 +1,8 @@
 {
-  "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/:path*" }
+  "version": 2,
+  "buildCommand": "",
+  "outputDirectory": ".",
+  "routes": [
+    { "src": "/api/chat", "dest": "/api/chat.js" }
   ]
 }
