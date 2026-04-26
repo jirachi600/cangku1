@@ -291,7 +291,7 @@ function setupChat() {
   // 从 localStorage 读取配置（含代理地址）
   var apiKey = '';
   var apiEndpoint = 'https://ark.cn-beijing.volces.com/api/v3/chat/completions';
-  var model = 'doubao-1.5-pro-32k';
+  var model = 'ep-20260425191504-swd6f';
   var proxyUrl = '';  // 默认直连；填入公开代理地址可解决 CORS 问题
 
   try {
